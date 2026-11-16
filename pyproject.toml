@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nonebot-plugin-yrr-fortune"
-version = "1.0.3"
+version = "1.0.4"
 description = "NoneBot 每日运势卡片：七档运势、六维雷达、幸运信息、宜忌与六套模板"
 readme = "README.md"
 requires-python = ">=3.9"

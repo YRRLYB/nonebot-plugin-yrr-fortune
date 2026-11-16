@@ -6,7 +6,7 @@
 
 ![YRR_运势](https://raw.githubusercontent.com/YRRLYB/nonebot-plugin-yrr-fortune/main/docs/cover.jpg)
 
-> 展示图中的 QQ 号、头像和背景均为生成的演示数据，不含真实用户信息。
+> 展示图中的 QQ 号和头像为虚构演示数据，背景来自默认运势接口；不含真实用户信息。
 
 ## 特性一览
 

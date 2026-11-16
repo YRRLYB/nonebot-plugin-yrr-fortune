@@ -18,7 +18,8 @@ import random
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+import httpx
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -87,6 +88,41 @@ def font_rule() -> str:
         return ""
     uri = FONT.resolve().as_uri()
     return f"@font-face {{ font-family: 'MsyhCustom'; src: url('{uri}') format('truetype'); }}"
+
+
+def load_demo_background(path: Path) -> None:
+    """Use a real fortune-style photo, generated locally if the API fails."""
+
+    local = os.environ.get("FORTUNE_DEMO_BACKGROUND")
+    if local and Path(local).is_file():
+        try:
+            with Image.open(local) as image:
+                image = ImageOps.exif_transpose(image).convert("RGB")
+                image.thumbnail((1600, 2560), Image.Resampling.LANCZOS)
+                image.save(path, "JPEG", quality=92, optimize=True)
+            print(f"demo background: local {local} -> {path.name}")
+            return
+        except Exception as exc:
+            print(f"local demo background failed ({exc}); trying API")
+
+    url = os.environ.get(
+        "FORTUNE_DEMO_BACKGROUND_URL",
+        "https://photo.yrrlyb.top/api.php?sort=mp",
+    )
+    try:
+        with httpx.Client(timeout=60.0, follow_redirects=True) as client:
+            response = client.get(url)
+            response.raise_for_status()
+            data = response.content
+        with Image.open(io.BytesIO(data)) as image:
+            image = ImageOps.exif_transpose(image).convert("RGB")
+            image.thumbnail((1600, 2560), Image.Resampling.LANCZOS)
+            image.save(path, "JPEG", quality=92, optimize=True)
+        print(f"demo background: {url} -> {path.name}")
+        return
+    except Exception as exc:
+        print(f"demo background download failed ({exc}); using generated fallback")
+    make_demo_background(path)
 
 
 def make_demo_background(path: Path) -> None:
@@ -278,7 +314,7 @@ def main() -> int:
 
     DOCS.mkdir(exist_ok=True)
     demo_bg = ROOT / "scripts" / "_demo_bg.jpg"
-    make_demo_background(demo_bg)
+    load_demo_background(demo_bg)
 
     core = load_core()
     context = core.build_render_context(

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4（2026-11-16）
+
+- 兼容 `nonebot-plugin-htmlrender` 0.8.x：新版移除了顶层 `html_to_pic`，改为按版本自动使用 `render_html`，修复商店插件加载失败。
+- 演示截图改用真实的运势背景图（来自默认 `sort=mp` 接口），不再使用生成的抽象渐变；QQ 号仍为虚构的 `00000000`，头像为生成占位头像。
+- 重新生成全尺寸 `preview-*.jpg`、`help.jpg` 和 `docs/cover.jpg`。
+
 ## 1.0.3（2026-11-16）
 
 - 商店展示名改为 `YRR_运势`（模块名仍为 `nonebot_plugin_yrr_fortune`）。

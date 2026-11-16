@@ -38,8 +38,16 @@ require("nonebot_plugin_localstore")
 require("nonebot_plugin_htmlrender")
 
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_htmlrender import html_to_pic
 from nonebot_plugin_localstore import get_plugin_cache_dir, get_plugin_data_dir
+
+try:  # nonebot-plugin-htmlrender < 0.8
+    from nonebot_plugin_htmlrender import html_to_pic
+
+    _HTMLRENDER_LEGACY = True
+except ImportError:  # nonebot-plugin-htmlrender >= 0.8 exposes render_html
+    from nonebot_plugin_htmlrender import render_html
+
+    _HTMLRENDER_LEGACY = False
 
 from .config import Config, fortune_texts
 from .core import (
@@ -516,6 +524,27 @@ def _as_uri(path: Optional[Path]) -> str:
         return ""
 
 
+async def _render_card(html: str, viewport: Dict[str, int]) -> bytes:
+    """Render one card on both htmlrender API generations."""
+
+    if _HTMLRENDER_LEGACY:
+        return await html_to_pic(
+            html, viewport=viewport, type="jpeg", quality=92
+        )
+
+    rendered = await render_html(
+        html,
+        width=viewport["width"],
+        height=viewport["height"],
+        device_pixel_ratio=2,
+        image_format="jpeg",
+        quality=92,
+        base_url=Path.cwd().resolve().as_uri(),
+        timeout_seconds=max(30.0, HTTP_TIMEOUT * 2),
+    )
+    return rendered.data
+
+
 # ---------------------------------------------------------------------------
 # Matchers
 # ---------------------------------------------------------------------------
@@ -570,11 +599,9 @@ async def handle_fortune(event: MessageEvent) -> None:
     try:
         try:
             html = template.format(**context)
-            image_bytes = await html_to_pic(
+            image_bytes = await _render_card(
                 html,
-                viewport=TEMPLATE_VIEWPORTS.get(template_choice, {"width": 1000, "height": 1000}),
-                type="jpeg",
-                quality=92,
+                TEMPLATE_VIEWPORTS.get(template_choice, {"width": 1000, "height": 1000}),
             )
         except FinishedException:
             raise
