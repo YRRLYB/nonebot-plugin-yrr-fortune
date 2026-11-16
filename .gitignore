@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# runtime data
+data/
+img_cache/
+*.log
+.env
+.env.*
+!.env.example
+
+# tooling
+chrome-profile/
+*.png.tmp

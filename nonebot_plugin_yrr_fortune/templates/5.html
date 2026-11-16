@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>电影海报风运势</title>
+<style>
+    /* 引入字体变量 */
+    {font_face_rule}
+
+    :root {{
+        --text-primary: #ffffff;
+        --text-dim: rgba(255, 255, 255, 0.7);
+        --accent: {theme_color}; /* 强调色 */
+    }}
+
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+
+    body {{
+        width: 1080px;
+        height: 1920px;
+        font-family: 'MsyhCustom', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #1a1a1a;
+        overflow: hidden;
+        position: relative;
+    }}
+
+    /* === 背景层 === */
+    .bg-layer {{
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url({background_image});
+        background-size: cover;
+        background-position: center center;
+        z-index: 0;
+    }}
+
+    /* 视觉遮罩：底部黑色渐变，保证文字清晰 */
+    .overlay-gradient {{
+        position: absolute;
+        bottom: 0; left: 0; width: 100%; height: 60%;
+        background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, transparent 100%);
+        z-index: 1;
+        pointer-events: none;
+    }}
+
+    /* 顶部暗角，让白色文字突显 */
+    .top-vignette {{
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 30%;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+        z-index: 1;
+    }}
+
+    /* === 内容层 === */
+    .ui-layer {{
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }}
+
+    /* --- 顶部信息 --- */
+    .top-bar {{
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }}
+
+    .user-badge {{
+        display: flex;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        padding: 8px 20px 8px 8px;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }}
+
+    .avatar {{
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        border: 2px solid var(--accent);
+    }}
+
+    .date-block {{
+        margin-left: 15px;
+        display: flex;
+        flex-direction: column;
+    }}
+
+    .date-text {{
+        font-size: 14px;
+        color: var(--text-dim);
+        letter-spacing: 1px;
+        font-weight: 300;
+    }}
+    
+    .plugin-name {{
+        font-size: 12px;
+        color: var(--accent);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }}
+
+    /* --- 右侧巨大的竖排等级 (修复版) --- */
+    .fortune-grade-container {{
+        position: absolute;
+        right: 40px;
+        top: 120px;
+        /* 稍微减少底部空间占用，防止顶出画面 */
+        height: 400px; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* 靠上对齐，防止字太多往下溢出 */
+        justify-content: flex-start; 
+        filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+    }}
+
+    .fortune-grade {{
+        /* 修复1：字体稍微改小，防止溢出黑边 */
+        font-size: 140px; 
+        font-weight: 900;
+        color: #fff;
+        
+        /* 修复2：不使用 writing-mode，改用宽度限制强制换行，彻底解决反向问题 */
+        width: 1.1em; 
+        word-break: break-all;
+        line-height: 1.0; /* 修复3：紧凑行高，解决间距过大 */
+        text-align: center;
+        
+        font-family: 'Noto Serif SC', 'SimSun', serif;
+        -webkit-text-stroke: 2px rgba(255,255,255,0.8); 
+        text-shadow: 4px 4px 0px var(--accent);
+    }}
+    
+    .grade-deco {{
+        width: 4px;
+        height: 80px;
+        background: #fff;
+        margin-top: 15px;
+        opacity: 0.5;
+    }}
+
+    /* --- 底部仪表盘 --- */
+    .dashboard {{
+        margin-top: auto;
+        width: 100%;
+    }}
+
+    /* 一言部分 */
+    .quote-section {{
+        margin-bottom: 30px;
+        border-left: 4px solid var(--accent);
+        padding-left: 20px;
+    }}
+
+    .quote-text {{
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.5;
+        font-style: italic;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        max-width: 700px;
+    }}
+
+    /* 数据栅格 */
+    .stats-grid {{
+        display: grid;
+        grid-template-columns: 240px 1fr 300px;
+        gap: 30px;
+        align-items: flex-end;
+        border-top: 1px solid rgba(255,255,255,0.15);
+        padding-top: 30px;
+    }}
+
+    /* 1. 雷达图区域 */
+    .radar-box {{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }}
+    
+    .radar-svg-wrapper {{
+        /* 强制让SVG变白以适应黑底 */
+        filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(255,255,255,0.3));
+        opacity: 0.9;
+        width: 180px;
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }}
+    
+    .section-label {{
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }}
+
+    /* 2. 幸运参数区域 - 横向排列 */
+    .lucky-params {{
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }}
+
+    .lucky-row {{
+        display: flex;
+        justify-content: space-between;
+        background: rgba(255,255,255,0.05);
+        border-radius: 4px;
+        padding: 12px 20px;
+        border-left: 2px solid rgba(255,255,255,0.2);
+    }}
+
+    .lucky-key {{
+        font-size: 14px;
+        color: var(--text-dim);
+    }}
+
+    .lucky-val {{
+        font-size: 16px;
+        font-weight: 800;
+        color: #fff;
+    }}
+
+    .color-dot {{
+        display: inline-block;
+        width: 12px; height: 12px;
+        background-color: {lucky_color};
+        border-radius: 50%;
+        margin-right: 8px;
+        box-shadow: 0 0 5px {lucky_color};
+    }}
+
+    /* 3. 建议区域 */
+    .advice-list {{
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }}
+
+    .advice-item {{
+        display: flex;
+        align-items: center;
+    }}
+
+    .advice-badge {{
+        font-size: 14px;
+        font-weight: 900;
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-right: 12px;
+        min-width: 36px;
+        text-align: center;
+    }}
+
+    .advice-item.good .advice-badge {{ background: #10b981; color: #000; }}
+    .advice-item.bad .advice-badge {{ background: #ef4444; color: #fff; }}
+
+    .advice-content {{
+        font-size: 14px;
+        color: #fff;
+        font-weight: 500;
+        line-height: 1.4;
+    }}
+
+    /* 装饰性角落元素 */
+    .deco-corner {{
+        position: absolute;
+        width: 20px; height: 20px;
+        border: 2px solid rgba(255,255,255,0.3);
+    }}
+    .top-left {{ top: 20px; left: 20px; border-right: 0; border-bottom: 0; }}
+    .top-right {{ top: 20px; right: 20px; border-left: 0; border-bottom: 0; }}
+    .bottom-left {{ bottom: 20px; left: 20px; border-right: 0; border-top: 0; }}
+    .bottom-right {{ bottom: 20px; right: 20px; border-left: 0; border-top: 0; }}
+
+.yrr-watermark{{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:99999;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.9);font:600 18px/1.4 'MsyhCustom','Noto Sans SC',sans-serif;letter-spacing:1px;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.45);}}</style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="overlay-gradient"></div>
+    <div class="top-vignette"></div>
+
+    <div class="deco-corner top-left"></div>
+    <div class="deco-corner top-right"></div>
+    <div class="deco-corner bottom-left"></div>
+    <div class="deco-corner bottom-right"></div>
+
+    <div class="ui-layer">
+        <div class="top-bar">
+            <div class="user-badge">
+                <img src="{avatar_url}" class="avatar">
+                <div class="date-block">
+                    <span class="plugin-name">FORTUNE SYSTEM</span>
+                    <span class="date-text">{current_time}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="fortune-grade-container">
+            <div class="fortune-grade">{level}</div>
+            <div class="grade-deco"></div>
+        </div>
+
+        <div class="dashboard">
+            <div class="quote-section">
+                <div class="quote-text">
+                    “{fortune_text}”
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                
+                <div class="radar-box">
+                    <div class="section-label">STATUS RADAR</div>
+                    <div class="radar-svg-wrapper">
+                        {radar_svg}
+                    </div>
+                </div>
+
+                <div class="lucky-params">
+                    <div class="section-label" style="margin-left: 2px;">LUCKY ITEMS</div>
+                    <div class="lucky-row">
+                        <span class="lucky-key">Lucky Color</span>
+                        <span class="lucky-val">
+                            <span class="color-dot"></span>{lucky_color}
+                        </span>
+                    </div>
+                    <div class="lucky-row">
+                        <span class="lucky-key">Lucky Number</span>
+                        <span class="lucky-val">{lucky_number}</span>
+                    </div>
+                    <div class="lucky-row">
+                        <span class="lucky-key">Direction</span>
+                        <span class="lucky-val">{lucky_direction}</span>
+                    </div>
+                </div>
+
+                <div class="advice-list">
+                    <div class="section-label">ADVICE</div>
+                    <div class="advice-item good">
+                        <div class="advice-badge">宜</div>
+                        <div class="advice-content">{good_activities}</div>
+                    </div>
+                    <div class="advice-item bad">
+                        <div class="advice-badge">忌</div>
+                        <div class="advice-content">{bad_activities}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="yrr-watermark">プリン bot</div></body>
+</html>

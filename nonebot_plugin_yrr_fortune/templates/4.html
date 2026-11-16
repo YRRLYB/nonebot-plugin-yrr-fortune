@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>全景HUD运势</title>
+<style>
+    /* 字体变量 */
+    {font_face_rule}
+
+    :root {{
+        --text-main: #ffffff;
+        --accent: {theme_color}; 
+        --shadow: 0 2px 4px rgba(0,0,0,0.8); 
+    }}
+
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+
+    body {{
+        /* 适配竖屏背景尺寸 */
+        width: 1080px;
+        height: 1920px;
+        font-family: 'MsyhCustom', 'Roboto', sans-serif;
+        background: #000;
+        overflow: hidden;
+        position: relative;
+    }}
+
+    .bg-layer {{
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url({background_image});
+        background-size: cover;
+        background-position: center;
+        z-index: 0;
+    }}
+
+    .vignette-top {{
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 300px;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+        z-index: 1;
+    }}
+    .vignette-bottom {{
+        position: absolute;
+        bottom: 0; left: 0; width: 100%; height: 400px;
+        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        z-index: 1;
+    }}
+
+    .ui-layer {{
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        padding: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }}
+
+    .corner-top-left {{
+        position: absolute;
+        top: 50px; left: 50px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }}
+    
+    .avatar {{
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.8);
+        box-shadow: var(--shadow);
+    }}
+
+    .user-info {{
+        display: flex;
+        flex-direction: column;
+        text-shadow: var(--shadow);
+    }}
+
+    .user-level {{
+        font-size: 16px;
+        color: var(--accent);
+        font-weight: bold;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }}
+    
+    .plugin-tag {{
+        font-size: 14px;
+        color: rgba(255,255,255,0.8);
+        border: 1px solid rgba(255,255,255,0.4);
+        padding: 4px 10px;
+        border-radius: 6px;
+        align-self: flex-start;
+        margin-top: 6px;
+    }}
+
+    .corner-top-right {{
+        position: absolute;
+        top: 50px; right: 50px;
+        text-align: right;
+        text-shadow: var(--shadow);
+    }}
+
+    .time-big {{
+        font-size: 64px;
+        font-weight: 900;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -2px;
+    }}
+    
+    .date-small {{
+        font-size: 20px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 3px;
+        margin-top: 8px;
+    }}
+
+    .corner-bottom-left {{
+        position: absolute;
+        bottom: 60px; left: 60px;
+        max-width: 500px;
+    }}
+
+    .fortune-big {{
+        font-size: 140px;
+        font-weight: 900;
+        color: transparent;
+        -webkit-text-stroke: 4px #fff;
+        line-height: 1;
+        margin-bottom: 15px;
+        filter: drop-shadow(0 0 8px rgba(0,0,0,0.6));
+        font-family: sans-serif;
+        font-style: italic;
+    }}
+    
+    .quote-text {{
+        font-size: 24px;
+        color: #fff;
+        font-weight: 500;
+        line-height: 1.6;
+        text-shadow: var(--shadow);
+        border-left: 6px solid var(--accent);
+        padding-left: 20px;
+    }}
+
+    .corner-bottom-right {{
+        position: absolute;
+        bottom: 60px; right: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 25px;
+        text-align: right;
+    }}
+
+    /* --- 重点调大区域 --- */
+    .data-strip {{
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        padding: 15px 30px;
+        border-radius: 60px;
+        border: 1px solid rgba(255,255,255,0.2);
+    }}
+
+    .data-item {{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }}
+
+    /* 小标题变大 */
+    .data-label {{ font-size: 16px; color: #bbb; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;}}
+    /* 参数数值大幅增加 */
+    .data-value {{ font-size: 28px; color: #fff; font-weight: bold; }}
+    
+    .advice-container {{
+        display: flex;
+        gap: 15px;
+        margin-top: 5px;
+    }}
+    
+    .advice-pill {{
+        background: rgba(255,255,255,0.95);
+        color: #000;
+        padding: 12px 24px;
+        border-radius: 12px;
+        /* 宜/忌文字变大 */
+        font-size: 20px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        max-width: 300px;
+    }}
+    
+    .advice-pill.bad {{
+        background: rgba(0,0,0,0.8);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.4);
+    }}
+
+    .pill-label {{
+        font-size: 16px;
+        opacity: 0.8;
+        margin-right: 10px;
+        text-transform: uppercase;
+        font-weight: 900;
+    }}
+
+    .radar-floating {{
+        margin-bottom: 10px;
+        opacity: 0.95;
+        filter: brightness(0) invert(1) drop-shadow(0 4px 8px rgba(0,0,0,0.8)); 
+        /* 雷达图整体等比例放大 */
+        transform: scale(1.15);
+        transform-origin: bottom right;
+    }}
+
+.yrr-watermark{{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:99999;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.9);font:600 18px/1.4 'MsyhCustom','Noto Sans SC',sans-serif;letter-spacing:1px;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.45);}}</style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="vignette-top"></div>
+    <div class="vignette-bottom"></div>
+
+    <div class="ui-layer">
+        <div class="corner-top-left">
+            <img src="{avatar_url}" class="avatar">
+            <div class="user-info">
+                <div class="user-level">Level {level}</div>
+                <div class="plugin-tag">FORTUNE BOT</div>
+            </div>
+        </div>
+
+        <div class="corner-top-right">
+            <div class="time-big">{current_time}</div> <div class="date-small">Today's Fortune</div>
+        </div>
+
+        <div class="corner-bottom-left">
+            <div class="fortune-big">{level}</div> 
+            <div class="quote-text">
+                {fortune_text}
+            </div>
+        </div>
+
+        <div class="corner-bottom-right">
+            <div class="radar-floating">
+                {radar_svg}
+            </div>
+
+            <div class="data-strip">
+                <div class="data-item">
+                    <span class="data-label">Lucky Color</span>
+                    <span class="data-value" style="color: {lucky_color}">{lucky_color}</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Number</span>
+                    <span class="data-value">{lucky_number}</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Direction</span>
+                    <span class="data-value">{lucky_direction}</span>
+                </div>
+            </div>
+
+            <div class="advice-container">
+                <div class="advice-pill">
+                    <span class="pill-label">DO</span>
+                    <span>{good_activities}</span>
+                </div>
+                <div class="advice-pill bad">
+                    <span class="pill-label">DONT</span>
+                    <span>{bad_activities}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="yrr-watermark">プリン bot</div></body>
+</html>
