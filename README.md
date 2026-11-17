@@ -88,7 +88,7 @@ FORTUNE_MAX_MESSAGE_MAP=500
 FORTUNE_INSECURE_SSL=false
 ```
 
-> **默认图库 API 推荐**：插件默认接入了作者自建的免费随机图服务 —— **[YRR 图库站](https://photo.yrrlyb.top/api.html)**（国内直连高速响应，专为 Bot 出图与各类轻量化项目优化）。如果你想给运势卡片切换其他图库分类（修改 `sort` 参数），或者正巧在为自己的其他机器人插件、个人主页寻找稳定免费的随机图接口，欢迎直接前往 **[YRR 图库 API 文档](https://photo.yrrlyb.top/api.html)** 查阅并自取调用。
+> **默认图库 API 推荐**：插件默认接入了作者自建的免费随机图服务 —— **[伊利布二次元美少女图库](https://photo.yrrlyb.top/api.html)**（国内直连高速响应，专为 Bot 出图与各类轻量化项目优化）。如果你想给运势卡片切换其他图库分类（修改 `sort` 参数），或者正巧在为自己的其他机器人插件、个人主页寻找稳定免费的随机图接口，欢迎直接前往 **[伊利布二次元美少女图库](https://photo.yrrlyb.top/api.html)** 查阅并自取调用。
 
 > **配置迁移提示**：旧版环境变量 `BACKGROUND_IMAGE_URL` 已正式弃用，请统一使用 `FORTUNE_BACKGROUND_URL`。若仅配置了旧变量，插件启动时会忽略该项并在日志中输出提示。
 
